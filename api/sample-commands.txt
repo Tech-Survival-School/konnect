@@ -1,0 +1,7 @@
+# Create a Service
+
+# Create a Route
+
+# Create a Global Plugin
+
+# Create a Consumer

@@ -1,0 +1,35 @@
+admin:
+  enabled: false
+env:
+  cluster_cert: /etc/secrets/kong-cluster-cert/tls.crt
+  cluster_cert_key: /etc/secrets/kong-cluster-cert/tls.key
+  cluster_control_plane: fill-in
+  cluster_mtls: pki
+  cluster_server_name: fill-in
+  cluster_telemetry_endpoint: fill-in
+  cluster_telemetry_server_name: fill-in
+  database: "off"
+  konnect_mode: "on"
+  lua_ssl_trusted_certificate: system
+  role: data_plane
+  vitals: "off"
+image:
+  repository: kong/kong-gateway
+  tag: 3.6.0.0
+ingressController:
+  enabled: false
+  installCRDs: false
+secretVolumes:
+- kong-cluster-cert
+proxy:
+  http:
+    enabled: true
+    nodePort: 30000
+  labels:
+    enable-metrics: "true"
+  tls:
+    enabled: true
+    nodePort: 30443
+  type: NodePort
+  ingress: 
+    enabled: true

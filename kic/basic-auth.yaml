@@ -1,0 +1,77 @@
+---
+# Make sure our manifests have a namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: basic-auth
+---
+# Create the basic-auth plugin in Kong with configs
+apiVersion: configuration.konghq.com/v1
+kind: KongClusterPlugin
+metadata:
+  name: global-basic-auth
+  namespace: basic-auth
+  annotations:
+    kubernetes.io/ingress.class: kong
+  labels:
+    global: "true"
+plugin: basic-auth
+config:
+  hide_credentials: true
+---
+# Create Jane's basic-auth credentials
+apiVersion: v1
+kind: Secret
+metadata:
+  name: jane-basic-auth
+  namespace: basic-auth
+type: Opaque
+stringData:
+  username: jane
+  password: password
+  kongCredType: basic-auth
+---
+# Create 'jane' consumer with basic-auth
+apiVersion: configuration.konghq.com/v1
+kind: KongConsumer
+metadata:
+  name: jane
+  namespace: basic-auth
+  annotations:
+    kubernetes.io/ingress.class: kong
+username: jane
+credentials:
+  - jane-basic-auth
+---
+# Define the service.
+apiVersion: v1
+kind: Service
+metadata:
+  name: httpbin-service
+  namespace: basic-auth
+  annotations:
+    konghq.com/path: "/anything"
+spec:
+  type: ExternalName
+  externalName: httpbin.default.svc.cluster.local
+---
+# Define the route
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: httpbin-all
+  namespace: basic-auth
+  annotations: 
+    konghq.com/strip-path: "true"
+spec:
+  ingressClassName: kong
+  rules:
+  - http:
+      paths:
+      - path: /httpbin
+        pathType: Prefix
+        backend:
+          service:
+            name: httpbin-service
+            port:
+              number: 80
